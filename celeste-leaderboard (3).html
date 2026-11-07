@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>mod submission leaderboard</title>
+<style>body{background:#000;color:#fff;font:18px arial,sans-serif;text-transform:lowercase;margin:40px auto;max-width:800px;text-align:center}h1{font-size:34px}select{font:18px arial,sans-serif;background:#000;color:#fff;border:1px solid #fff}a{color:#fff}table{margin:30px auto;border-collapse:collapse;min-width:80%;font-size:30px}td,th{padding:10px 24px;border-bottom:1px solid #fff}#s{position:relative;display:inline-block;width:220px;height:22px;vertical-align:middle}#s input{position:absolute;left:0;top:0;width:100%;height:22px;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}#s input::-webkit-slider-runnable-track{height:2px;background:#fff}#s input::-moz-range-track{height:2px;background:#fff}#s input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:16px;height:16px;margin-top:-7px;background:#fff;border:0;border-radius:50%;cursor:pointer}#s input::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;background:#fff;border:0;border-radius:50%;cursor:pointer}</style>
+<h1>mod submission leaderboard</h1>
+showing top <select id=n><option>10<option>50<option>100</select>
+date range
+<span id=s><input id=lo type=range min=2018 max=2026 value=2018><input id=hi type=range min=2018 max=2026 value=2026></span>
+<span id=y></span>
+<table><thead><tr><th>#<th>user<th>mods<tbody id=l></table>
+<script>
+let R=[],A="https://gamebanana.com/apiv11/Mod/Index?_nPerpage=50&_aFilters[Generic_Game]=6460&_nPage=";
+function show(){
+let a=+lo.value,z=+hi.value,m={};
+y.textContent=a+"-"+z;
+for(let r of R)if(r.y>=a&&r.y<=z)(m[r.i]=m[r.i]||{n:r.n,u:r.u,c:0}).c++;
+l.innerHTML="";
+Object.values(m).sort((p,q)=>q.c-p.c).slice(0,+n.value).forEach((u,i)=>{
+let t=l.insertRow(),k=document.createElement("a");
+k.textContent=u.n;k.href=u.u;
+t.insertCell().textContent=i+1;t.insertCell().append(k);t.insertCell().textContent=u.c;
+});
+}
+async function g(n){
+for(let i=0;;i++)try{return await(await fetch(A+n)).json()}catch(e){if(i>1)throw e;await new Promise(r=>setTimeout(r,800))}
+}
+function add(d){for(let r of d._aRecords){let s=r._aSubmitter;if(s)R.push({i:s._idRow,n:s._sName,u:s._sProfileUrl,y:new Date(r._tsDateAdded*1e3).getFullYear()})}}
+async function load(){
+R=[];
+try{
+let d=await g(1),p=Math.ceil(d._aMetadata._nRecordCount/50),n=2;
+add(d);show();
+await Promise.all([1,2,3,4].map(async()=>{while(n<=p){add(await g(n++));show()}}));
+}catch(e){l.innerHTML="<tr><td colspan=3>error: "+e.message}
+}
+n.onchange=show;
+lo.oninput=()=>{if(+lo.value>+hi.value)hi.value=lo.value;show()};
+hi.oninput=()=>{if(+hi.value<+lo.value)lo.value=hi.value;show()};
+show();
+load();
+</script>
